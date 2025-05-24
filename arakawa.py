@@ -9,56 +9,124 @@ def laplacian(f, dx):
     ) / dx**2
 
 def arakawa_jacobian(z, psi, dx):
-    # Arakawa Jacobian J_A = (J1 + J2 + J3) / 3
-    J1 = (
+    # Arakawa Jacobian J_A = (jplusplus + jpluscros + jcrossplus) / 3
+    jplusplus = (
         (np.roll(z, -1, axis=0) - np.roll(z, 1, axis=0)) *
         (np.roll(psi, -1, axis=1) - np.roll(psi, 1, axis=1)) -
         (np.roll(z, -1, axis=1) - np.roll(z, 1, axis=1)) *
         (np.roll(psi, -1, axis=0) - np.roll(psi, 1, axis=0))
     )
 
-    J2 = (
+    jpluscross = (
         np.roll(z, -1, axis=0) * (
-            np.roll(psi, -1, (0, 1)) - np.roll(psi, 1, (0, 1))
+            np.roll(psi, -1, (0, 1)) - np.roll(psi, (-1, 1), (0, 1))
         ) -
         np.roll(z, 1, axis=0) * (
-            np.roll(psi, -1, (0, 1)) - np.roll(psi, 1, (0, 1))
+            np.roll(psi, (1, -1), (0, 1)) - np.roll(psi, 1, (0, 1))
         ) -
         np.roll(z, -1, axis=1) * (
-            np.roll(psi, -1, (1, 0)) - np.roll(psi, 1, (1, 0))
+            np.roll(psi, -1, (0, 1)) - np.roll(psi, (1, -1), (0, 1))
         ) +
         np.roll(z, 1, axis=1) * (
-            np.roll(psi, -1, (1, 0)) - np.roll(psi, 1, (1, 0))
+            np.roll(psi, (-1, 1), (0, 1)) - np.roll(psi, 1, (0, 1))
         )
     )
 
-    J3 = (
-        (np.roll(z, (-1, -1), (0, 1)) - np.roll(z, (-1, 1), (0, 1)) -
-         np.roll(z, (1, -1), (0, 1)) + np.roll(z, (1, 1), (0, 1))) *
-        (np.roll(psi, (-1, -1), (0, 1)) - np.roll(psi, (-1, 1), (0, 1)) -
-         np.roll(psi, (1, -1), (0, 1)) + np.roll(psi, (1, 1), (0, 1)))
+    jcrossplus = (
+        np.roll(zeta, -1, (0, 1)) * (np.roll(psi, -1, 1) - np.roll(psi, -1, 0)) -
+        np.roll(zeta, 1, (0, 1)) * (np.roll(psi, 1, 0) - np.roll(psi, 1, 1)) -
+        np.roll(zeta, (1, -1), (0, 1)) * (np.roll(psi, -1, 1) - np.roll(psi, 1, 0)) +
+        np.roll(zeta, (-1, 1), (0, 1)) * (np.roll(psi, -1, 0) - np.roll(psi, 1, 1))
     )
 
-    return (J1 + J2 + J3) / (12 * dx**2)
+    return (jplusplus + jpluscross + jcrossplus) / (12 * dx**2)
 
-def solve_poisson(zeta, dx, tol=1e-6, max_iter=10000):
-    psi = np.zeros_like(zeta)
-    for _ in range(max_iter):
-        psi_new = 0.25 * (
+# def solve_poisson(zeta, dx, tol=1e-4, max_iter=10000):
+#     psi = np.zeros_like(zeta)
+#     for _ in range(max_iter):
+#         psi_new = 0.25 * (
+#             np.roll(psi, 1, axis=0) + np.roll(psi, -1, axis=0) +
+#             np.roll(psi, 1, axis=1) + np.roll(psi, -1, axis=1) +
+#             dx**2 * zeta
+#         )
+#         if np.max(np.abs(psi_new - psi)) < tol:
+#             break
+#         psi = psi_new
+#     return psi
+
+def residual(psi, rhs, dx):
+    # 计算残差：r = f - Lψ
+    return rhs - laplacian(psi, dx)
+
+def restrict(fine):
+    # 将高分辨率残差限制（restrict）到粗网格
+    Nc = fine.shape[0] // 2
+    coarse = np.zeros((Nc, Nc))
+    for i in range(Nc):
+        for j in range(Nc):
+            ii, jj = 2 * i, 2 * j
+            coarse[i, j] = 0.25 * (fine[ii, jj] + fine[ii+1, jj] +
+                                   fine[ii, jj+1] + fine[ii+1, jj+1])
+    return coarse
+
+def prolong(coarse):
+    # 将粗网格误差插值（prolong）回细网格
+    Nc = coarse.shape[0]
+    Nf = Nc * 2
+    fine = np.zeros((Nf, Nf))
+    for i in range(Nc):
+        for j in range(Nc):
+            fine[2*i:2*i+2, 2*j:2*j+2] = coarse[i, j]
+    return fine
+
+def smooth(psi, rhs, dx, iterations=3):
+    # 用 Gauss-Seidel 或 Jacobi 方法进行预/后平滑
+    for _ in range(iterations):
+        psi = 0.25 * (
             np.roll(psi, 1, axis=0) + np.roll(psi, -1, axis=0) +
             np.roll(psi, 1, axis=1) + np.roll(psi, -1, axis=1) +
-            dx**2 * zeta
+            dx**2 * rhs
         )
-        if np.max(np.abs(psi_new - psi)) < tol:
-            break
-        psi = psi_new
     return psi
+
+def v_cycle(rhs, dx, level):
+    """
+    多重网格 V-cycle 主函数
+    - level = 0 表示已到最粗网格
+    - 否则递归下采样、求误差并上采样修正
+    """
+    N = rhs.shape[0]
+    psi = np.zeros_like(rhs)
+
+    if level == 0 or N <= 4:
+        return smooth(psi, rhs, dx, iterations=50)
+
+    # 预平滑
+    psi = smooth(psi, rhs, dx)
+    # 计算残差并 restrict 到更粗网格
+    res = residual(psi, rhs, dx)
+    res_c = restrict(res)
+    # 递归求解误差
+    err_c = v_cycle(res_c, 2*dx, level-1)
+    # 将误差 prolong 回来并修正
+    err_f = prolong(err_c)
+    psi += err_f
+    # 后平滑
+    psi = smooth(psi, rhs, dx)
+
+    return psi
+
+def solve_poisson(zeta, dx):
+    # 给定 ζ，求解 Δψ = -ζ
+    rhs = -zeta
+    levels = int(np.log2(zeta.shape[0])) - 2
+    return v_cycle(rhs, dx, levels)
 
 def rhs(zeta, dx, nu):
     psi = solve_poisson(-zeta, dx)
     jac = arakawa_jacobian(zeta, psi, dx)
     diff = nu * laplacian(zeta, dx)
-    return -jac + diff
+    return jac + diff
 
 def rk4_step(zeta, dt, dx, nu):
     k1 = rhs(zeta, dx, nu)
@@ -73,7 +141,8 @@ def initialize_vorticity(N, kind='vortex'):
     X, Y = np.meshgrid(x, y, indexing='ij')
     if kind == 'vortex':
         r2 = (X - np.pi)**2 + (Y - np.pi)**2
-        return np.exp(-r2 / 0.1)
+        # r3 = (X - 3 * np.pi / 2)**2 + (Y - np.pi)**2
+        return np.exp(-r2 / 0.1) # - np.exp(-r3 / 0.1)
     elif kind == 'random':
         return np.random.randn(N, N) * 0.1
     else:
@@ -100,12 +169,12 @@ def create_animation(zeta_history, dx, filename="vorticity.mp4", interval=50):
 
 N = 128
 dx = 2*np.pi / N
-dt = 0.01
+dt = 0.05
 nu = 0
-steps = 1000
+steps = 10000
 
 zeta_history = []
-snapshot_interval = 10
+snapshot_interval = 100
 
 zeta = initialize_vorticity(N, kind='vortex')
 
