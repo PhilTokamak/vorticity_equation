@@ -8,19 +8,83 @@
 constexpr int N = 128;
 constexpr double L = 2 * M_PI;
 constexpr double dx = L / N;
-constexpr double dt = 0.01;
-constexpr int STEPS = 2000;
-constexpr int SAVE_EVERY = 10;
+constexpr double dt = 1;
+constexpr int STEPS = 3000;
+constexpr int SAVE_EVERY = 100;
 
 using Grid = std::vector<std::vector<double>>;
 
-int idx(int i, int n = N) {
-    return (i + n) % n;
+Grid operator+(const Grid& a, const Grid& b) {
+    int n = a.size();
+    Grid result = a;
+    for (int i = 0; i < n; ++i)
+        for (int j = 0; j < n; ++j)
+            result[i][j] += b[i][j];
+    return result;
+}
+
+Grid operator*(double scalar, const Grid& g) {
+    int n = g.size();
+    Grid result = g;
+    for (int i = 0; i < n; ++i)
+        for (int j = 0; j < n; ++j)
+            result[i][j] *= scalar;
+    return result;
+}
+
+Grid operator-(const Grid& a, const Grid& b) {
+    int n = a.size();
+    Grid result = a;
+    for (int i = 0; i < n; ++i)
+        for (int j = 0; j < n; ++j)
+            result[i][j] -= b[i][j];
+    return result;
 }
 
 Grid zero_grid(int n) {
     return Grid(n, std::vector<double>(n, 0.0));
 }
+
+int idx(int i, int n = N) {
+    return (i + n) % n;
+}
+
+Grid laplacian(const Grid& f, double h) {
+    int n = f.size();
+    Grid result = zero_grid(n);
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            result[i][j] = (f[idx(i + 1, n)][j] + f[idx(i - 1, n)][j]
+                            + f[i][idx(j + 1, n)] + f[i][idx(j - 1, n)]
+                            - 4.0 * f[i][j]) / (h * h);
+        }
+    }
+    return result;
+}
+
+Grid arakawa_jacobian(const Grid& zeta, const Grid& psi) {
+    Grid J(N, std::vector<double>(N, 0.0));
+    for (int i = 0; i < N; ++i) {
+        for (int j = 0; j < N; ++j) {
+            double jplusplus = (zeta[idx(i + 1)][j] - zeta[idx(i - 1)][j]) * (psi[i][idx(j + 1)] - psi[i][idx(j - 1)])
+                       - (zeta[i][idx(j + 1)] - zeta[i][idx(j - 1)]) * (psi[idx(i + 1)][j] - psi[idx(i - 1)][j]);
+
+            double jpluscross = zeta[idx(i + 1)][j] * (psi[idx(i + 1)][idx(j + 1)] - psi[idx(i + 1)][idx(j - 1)])
+                       - zeta[idx(i - 1)][j] * (psi[idx(i - 1)][idx(j + 1)] - psi[idx(i - 1)][idx(j - 1)])
+                       - zeta[i][idx(j + 1)] * (psi[idx(i + 1)][idx(j + 1)] - psi[idx(i - 1)][idx(j + 1)])
+                       + zeta[i][idx(j - 1)] * (psi[idx(i + 1)][idx(j - 1)] - psi[idx(i - 1)][idx(j - 1)]);
+
+            double jcrossplus = zeta[idx(i + 1)][idx(j + 1)] * (psi[i][idx(j + 1)] - psi[idx(i + 1)][j])
+                       - zeta[idx(i - 1)][idx(j - 1)] * (psi[idx(i - 1)][j] - psi[i][idx(j - 1)])
+                       - zeta[idx(i - 1)][idx(j + 1)] * (psi[i][idx(j + 1)] - psi[idx(i - 1)][j])
+                       + zeta[idx(i + 1)][idx(j - 1)] * (psi[idx(i + 1)][j] - psi[i][idx(j - 1)]);
+
+            J[i][j] = (jplusplus + jpluscross + jcrossplus) / (12 * dx * dx);
+        }
+    }
+    return J;
+}
+
 
 void initialize(Grid& zeta) {
     for (int i = 0; i < N; ++i)
@@ -31,11 +95,24 @@ void initialize(Grid& zeta) {
         }
 }
 
+void smooth(Grid& psi, const Grid& rhs, int iterations, double h) {
+    int n = psi.size();
+    for (int it = 0; it < iterations; ++it) {
+        for (int i = 0; i < n; ++i)
+            for (int j = 0; j < n; ++j)
+                psi[i][j] = 0.25 * (psi[idx(i+1, n)][j] + psi[idx(i-1, n)][j] + psi[i][idx(j+1, n)] + psi[i][idx(j-1, n)] - h * h * rhs[i][j]);
+    }
+}
+
+Grid residual(const Grid& psi, const Grid& rhs, double h) {
+    return rhs - laplacian(psi, h);
+}
+
 Grid restrict_grid(const Grid& fine) {
     int Nc = fine.size() / 2;
     Grid coarse = zero_grid(Nc);
-    for (int i = 1; i < Nc - 1; ++i)
-        for (int j = 1; j < Nc - 1; ++j)
+    for (int i = 0; i < Nc; ++i)
+        for (int j = 0; j < Nc; ++j)
             coarse[i][j] = 0.25 * (fine[2*i][2*j] + fine[2*i+1][2*j] + fine[2*i][2*j+1] + fine[2*i+1][2*j+1]);
     return coarse;
 }
@@ -53,24 +130,6 @@ Grid prolong_grid(const Grid& coarse) {
     return fine;
 }
 
-Grid residual(const Grid& psi, const Grid& rhs, double h) {
-    int n = psi.size();
-    Grid r = zero_grid(n);
-    for (int i = 1; i < n - 1; ++i)
-        for (int j = 1; j < n - 1; ++j)
-            r[i][j] = rhs[i][j] - (psi[i+1][j] + psi[i-1][j] + psi[i][j+1] + psi[i][j-1] - 4 * psi[i][j]) / (h * h);
-    return r;
-}
-
-void smooth(Grid& psi, const Grid& rhs, int iterations, double h) {
-    int n = psi.size();
-    for (int it = 0; it < iterations; ++it) {
-        for (int i = 1; i < n - 1; ++i)
-            for (int j = 1; j < n - 1; ++j)
-                psi[i][j] = 0.25 * (psi[i+1][j] + psi[i-1][j] + psi[i][j+1] + psi[i][j-1] + h * h * rhs[i][j]);
-    }
-}
-
 Grid multigrid_vcycle(const Grid& rhs, int level, double h) {
     int n = rhs.size();
     Grid psi = zero_grid(n);
@@ -86,59 +145,30 @@ Grid multigrid_vcycle(const Grid& rhs, int level, double h) {
     Grid e_coarse = multigrid_vcycle(r_coarse, level - 1, 2 * h);
     Grid e_fine = prolong_grid(e_coarse);
 
-    for (int i = 1; i < n - 1; ++i)
-        for (int j = 1; j < n - 1; ++j)
-            psi[i][j] += e_fine[i][j];
+    psi = psi + e_fine;
 
     smooth(psi, rhs, 3, h);
     return psi;
 }
 
-Grid multigrid_solve(const Grid& rhs, int levels) {
-    return multigrid_vcycle(rhs, levels, 1.0 / rhs.size());
+Grid multigrid_solve(const Grid& rhs, double h) {
+    int levels = int(log2(rhs.size())) - 2;
+    return multigrid_vcycle(rhs, levels, h);
 }
 
-Grid arakawa_jacobian(const Grid& zeta, const Grid& psi) {
-    Grid J(N, std::vector<double>(N, 0.0));
-    for (int i = 1; i < N - 1; ++i) {
-        for (int j = 1; j < N - 1; ++j) {
-            double jpp = (zeta[idx(i + 1)][j] - zeta[idx(i - 1)][j]) * (psi[i][idx(j + 1)] - psi[i][idx(j - 1)])
-                       - (zeta[i][idx(j + 1)] - zeta[i][idx(j - 1)]) * (psi[idx(i + 1)][j] - psi[idx(i - 1)][j]);
 
-            double jxp = zeta[idx(i + 1)][j] * (psi[idx(i + 1)][idx(j + 1)] - psi[idx(i + 1)][idx(j - 1)])
-                       - zeta[idx(i - 1)][j] * (psi[idx(i - 1)][idx(j + 1)] - psi[idx(i - 1)][idx(j - 1)])
-                       - zeta[i][idx(j + 1)] * (psi[idx(i + 1)][idx(j + 1)] - psi[idx(i - 1)][idx(j + 1)])
-                       + zeta[i][idx(j - 1)] * (psi[idx(i + 1)][idx(j - 1)] - psi[idx(i - 1)][idx(j - 1)]);
-
-            double jpx = zeta[idx(i + 1)][idx(j + 1)] * (psi[i][idx(j + 1)] - psi[idx(i + 1)][j])
-                       - zeta[idx(i - 1)][idx(j + 1)] * (psi[i][idx(j + 1)] - psi[idx(i - 1)][j])
-                       - zeta[idx(i + 1)][idx(j - 1)] * (psi[i][idx(j - 1)] - psi[idx(i + 1)][j])
-                       + zeta[idx(i - 1)][idx(j - 1)] * (psi[i][idx(j - 1)] - psi[idx(i - 1)][j]);
-
-            J[i][j] = (jpp + jxp + jpx) / (12 * dx * dx);
-        }
-    }
-    return J;
+Grid rhs(const Grid& zeta) {
+    Grid psi = multigrid_solve(zeta, dx);
+    Grid jac = arakawa_jacobian(zeta, psi);
+    return jac;
 }
 
 void rk4_step(Grid& zeta) {
-    auto k1 = arakawa_jacobian(zeta, multigrid_solve(zeta, 4));
-    Grid tmp1 = zeta, tmp2 = zeta, tmp3 = zeta;
-    for (int i = 0; i < N; ++i)
-        for (int j = 0; j < N; ++j) tmp1[i][j] -= 0.5 * dt * k1[i][j];
-
-    auto k2 = arakawa_jacobian(tmp1, multigrid_solve(tmp1, 4));
-    for (int i = 0; i < N; ++i)
-        for (int j = 0; j < N; ++j) tmp2[i][j] -= 0.5 * dt * k2[i][j];
-
-    auto k3 = arakawa_jacobian(tmp2, multigrid_solve(tmp2, 4));
-    for (int i = 0; i < N; ++i)
-        for (int j = 0; j < N; ++j) tmp3[i][j] -= dt * k3[i][j];
-
-    auto k4 = arakawa_jacobian(tmp3, multigrid_solve(tmp3, 4));
-    for (int i = 0; i < N; ++i)
-        for (int j = 0; j < N; ++j)
-            zeta[i][j] += dt * (k1[i][j] + 2 * k2[i][j] + 2 * k3[i][j] + k4[i][j]) / 6.0;
+    Grid k1 = rhs(zeta);
+    Grid k2 = rhs(zeta + 0.5 * dt * k1);
+    Grid k3 = rhs(zeta + 0.5 * dt * k2);
+    Grid k4 = rhs(zeta + dt * k3);
+    zeta = zeta + dt / 6.0 * (k1 + 2.0 * k2 + 2.0 * k3 + k4);
 }
 
 void save_csv(const Grid& f, int step) {
@@ -157,6 +187,7 @@ void save_csv(const Grid& f, int step) {
 int main() {
     Grid zeta(N, std::vector<double>(N));
     initialize(zeta);
+    system("rm -rf output");
     system("mkdir -p output");
     for (int step = 0; step <= STEPS; ++step) {
         if (step % SAVE_EVERY == 0) {

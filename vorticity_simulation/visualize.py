@@ -1,29 +1,42 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 import os
-import imageio
-import glob
+import re
 
-output_dir = "output"
-files = sorted([f for f in os.listdir(output_dir) if f.endswith(".csv")])
-frames = []
+def create_animation(zeta_history, filename="vorticity_evolution.mp4", interval=50):
+    fig, ax = plt.subplots()
+    im = ax.imshow(zeta_history[0], origin='lower', cmap='seismic',
+                   extent=[0, 2*np.pi, 0, 2*np.pi], animated=True)
+    cbar = plt.colorbar(im, ax=ax)
 
-for fname in files:
-    data = np.loadtxt(os.path.join(output_dir, fname), delimiter=",")
-    fig, ax = plt.subplots(figsize=(6.08, 6.08))
-    im = ax.imshow(data, cmap="RdBu", origin="lower", extent=[0, 2*np.pi, 0, 2*np.pi])
-    ax.set_title(fname)
-    plt.colorbar(im)
-    plt.tight_layout()
-    frame_name = f"frame_{fname.split('_')[1].split('.')[0]}.png"
-    plt.savefig(frame_name)
-    frames.append(imageio.v2.imread(frame_name))
+    def update(frame):
+        im.set_array(zeta_history[frame])
+        ax.set_title(f"frame = {frame}")
+        return [im]
+
+    ani = animation.FuncAnimation(fig, update, frames=len(zeta_history),
+                                  interval=interval, blit=True)
+
+    ani.save(filename, writer='ffmpeg', dpi=150)
     plt.close()
 
 
-for filename in glob.glob("frame_*.png"):
-    os.remove(filename)
+output_dir = "output"
+def extract_step(filename):
+    match = re.search(r"zeta_(\d+)\.csv", filename)
+    return int(match.group(1)) if match else -1
 
-imageio.mimsave("vorticity_evolution.mp4", frames, fps=10)
+files = sorted(
+    [f for f in os.listdir(output_dir) if f.endswith(".csv")],
+    key=extract_step
+)
+zeta_history = []
+
+for fname in files:
+    data = np.loadtxt(os.path.join(output_dir, fname), delimiter=",")
+    zeta_history.append(data)
+
+create_animation(zeta_history, filename="vorticity_evolution.mp4", interval=50)
 print("Video saved as vorticity_evolution.mp4")
