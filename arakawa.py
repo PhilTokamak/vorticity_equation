@@ -192,9 +192,9 @@ def initialize_vorticity(N, kind='vortex'):
     y = np.linspace(0, 2*np.pi, N, endpoint=False)
     X, Y = np.meshgrid(x, y, indexing='ij')
     if kind == 'vortex':
-        r2 = (X - np.pi)**2 + (Y - np.pi)**2
-        # r3 = (X - 3 * np.pi / 2)**2 + (Y - np.pi)**2
-        return np.exp(-r2 / 0.1) # - np.exp(-r3 / 0.1)
+        r2 = (X - np.pi / 2)**2 + (Y - np.pi)**2
+        r3 = (X - 3 * np.pi / 2)**2 + (Y - np.pi)**2
+        return np.exp(-r2 / 0.1) - np.exp(-r3 / 0.1)
     elif kind == 'random':
         return np.random.randn(N, N) * 0.1
     else:
@@ -244,11 +244,11 @@ def create_velocity_animation(velocity_history, T, filename="velocity.mp4", inte
     plt.close()
 
 
-N = 128
+N = 64
 dx = 2*np.pi / N
-dt = 0.05
-nu = 1e-6
-steps = 60000
+dt = 0.5
+nu = 0
+steps = 2000
 
 zeta_history = []
 psi_history = []
@@ -260,9 +260,9 @@ zeta = initialize_vorticity(N, kind='vortex')
 zeta_history.append(zeta)
 T.append(0.0)
 
-for n in range(steps):
-    zeta = rk4_step(zeta, dt, dx, nu)
+for n in range(steps + 1):
     if n % snapshot_interval == 0:
+        np.savetxt(f"output_py/zeta_{n}.csv", zeta, delimiter=",")
         psi = solve_poisson(zeta, dx)
         u, v = compute_velocity(psi, dx)
         velocity_history.append((1e1*u, 1e1*v))
@@ -270,6 +270,7 @@ for n in range(steps):
         zeta_history.append(zeta.copy())
         psi_history.append(psi.copy())
         print(f"Step {n}")
+    zeta = rk4_step(zeta, dt, dx, nu)
 
 create_animation(zeta_history, T, filename="vorticity.mp4", interval=50)
 create_animation(psi_history, T, filename="stream_func.mp4", interval=50)
