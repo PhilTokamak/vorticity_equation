@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# execute simulation
+time ./simulation
+
+python3 @PROJECT_SOURCE_DIR@/post_processing/visualize.py
