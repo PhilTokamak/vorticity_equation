@@ -247,7 +247,7 @@ def create_velocity_animation(velocity_history, T, filename="velocity.mp4", inte
 N = 128
 dx = 2*np.pi / N
 dt = 0.05
-nu = 0
+nu = 1e-6
 steps = 60000
 
 zeta_history = []
