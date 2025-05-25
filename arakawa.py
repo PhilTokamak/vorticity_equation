@@ -38,10 +38,10 @@ def arakawa_jacobian(z, psi, dx):
     )
 
     jcrossplus = (
-        np.roll(zeta, -1, (0, 1)) * (np.roll(psi, -1, 1) - np.roll(psi, -1, 0)) -
-        np.roll(zeta, 1, (0, 1)) * (np.roll(psi, 1, 0) - np.roll(psi, 1, 1)) -
-        np.roll(zeta, (1, -1), (0, 1)) * (np.roll(psi, -1, 1) - np.roll(psi, 1, 0)) +
-        np.roll(zeta, (-1, 1), (0, 1)) * (np.roll(psi, -1, 0) - np.roll(psi, 1, 1))
+        np.roll(z, -1, (0, 1)) * (np.roll(psi, -1, 1) - np.roll(psi, -1, 0)) -
+        np.roll(z, 1, (0, 1)) * (np.roll(psi, 1, 0) - np.roll(psi, 1, 1)) -
+        np.roll(z, (1, -1), (0, 1)) * (np.roll(psi, -1, 1) - np.roll(psi, 1, 0)) +
+        np.roll(z, (-1, 1), (0, 1)) * (np.roll(psi, -1, 0) - np.roll(psi, 1, 1))
     )
 
     return (jplusplus + jpluscross + jcrossplus) / (12 * dx**2)
@@ -192,9 +192,9 @@ def initialize_vorticity(N, kind='vortex'):
     y = np.linspace(0, 2*np.pi, N, endpoint=False)
     X, Y = np.meshgrid(x, y, indexing='ij')
     if kind == 'vortex':
-        r2 = (X - np.pi / 2)**2 + (Y - np.pi)**2
-        r3 = (X - 3 * np.pi / 2)**2 + (Y - np.pi)**2
-        return np.exp(-r2 / 0.1) - np.exp(-r3 / 0.1)
+        r2 = (X - 3 * np.pi / 4)**2 + (Y - np.pi)**2
+        r3 = (X - 5 * np.pi / 4)**2 + (Y - np.pi)**2
+        return np.exp(-r2 * 10.0) + np.exp(-r3 * 10.0) #+ np.random.randn(N, N) * 0.1
     elif kind == 'random':
         return np.random.randn(N, N) * 0.1
     else:
@@ -246,9 +246,9 @@ def create_velocity_animation(velocity_history, T, filename="velocity.mp4", inte
 
 N = 64
 dx = 2*np.pi / N
-dt = 0.5
-nu = 0
-steps = 2000
+dt = 0.05
+nu = 1.0e-6
+steps = 1000
 
 zeta_history = []
 psi_history = []

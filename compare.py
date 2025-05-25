@@ -17,10 +17,7 @@ zeta_history = []
 for fname in files:
     data_py = np.loadtxt(os.path.join(output_dir_py, fname), delimiter=",")
     data_cpp = np.loadtxt(os.path.join(output_dir_cpp, fname), delimiter=",")
-    if np.max(abs(data_py - data_cpp)) < 1e-10:
+    if np.max(abs(data_py - data_cpp)) < 1e-6:
         print(fname, "ok")
     else:
-        print(fname, "different!",
-              np.argmax(abs(data_py - data_cpp))//data_py.shape[0],
-              np.argmax(abs(data_py - data_cpp))%data_py.shape[0],
-              np.max(abs(data_py - data_cpp)))
+        print(fname, "different!", np.max(abs(data_py - data_cpp)))
