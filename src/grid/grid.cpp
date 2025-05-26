@@ -11,6 +11,17 @@ Grid operator+(const Grid& a, const Grid& b) {
     return result;
 }
 
+Grid operator-(const Grid& a, const Grid& b) {
+    int n = a.size();
+    Grid result = zero_grid(n);
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            result[i][j] = a[i][j] - b[i][j];
+        }
+    }
+    return result;
+}
+
 Grid operator*(double scalar, const Grid& g) {
     int n = g.size();
     Grid result = zero_grid(n);
@@ -22,16 +33,18 @@ Grid operator*(double scalar, const Grid& g) {
     return result;
 }
 
-Grid operator-(const Grid& a, const Grid& b) {
+Grid operator*(const Grid& a, const Grid& b) {
     int n = a.size();
     Grid result = zero_grid(n);
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
-            result[i][j] = a[i][j] - b[i][j];
+            result[i][j] = a[i][j] * b[i][j];
         }
     }
     return result;
 }
+
+
 
 double Grid::sum() const {
     int n = size();

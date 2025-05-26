@@ -41,6 +41,7 @@ for fname in files:
 create_animation(zeta_history, filename="vorticity_evolution.mp4", interval=50)
 print("Video saved as vorticity_evolution.mp4")
 
+# plot mean vorticity evolution
 diag_filename = "mean_vorticity.csv"
 zeta_mean = np.loadtxt(os.path.join(output_dir, "diagnostics", diag_filename), delimiter=",")
 
@@ -48,6 +49,33 @@ fig, ax = plt.subplots()
 ax.plot(zeta_mean)
 ax.set_ylabel(r"Mean $\zeta$")
 ax.set_xlabel("frame")
+ax.set_title(r"Mean Vorticity Evolution")
 ax.grid()
 plt.savefig("mean_vorticity.pdf")
+plt.close()
+
+# plot mean kinetic energy evolution
+diag_filename = "mean_kinetic_E.csv"
+zeta_mean = np.loadtxt(os.path.join(output_dir, "diagnostics", diag_filename), delimiter=",")
+
+fig, ax = plt.subplots()
+ax.plot(zeta_mean)
+ax.set_ylabel(r"Mean E_k")
+ax.set_xlabel("frame")
+ax.set_title(r"Mean Kinetic Energy Evolution")
+ax.grid()
+plt.savefig("mean_kinetic_E.pdf")
+plt.close()
+
+# plot mean enstrophy evolution
+diag_filename = "mean_enstrophy.csv"
+zeta_mean = np.loadtxt(os.path.join(output_dir, "diagnostics", diag_filename), delimiter=",")
+
+fig, ax = plt.subplots()
+ax.plot(zeta_mean)
+ax.set_ylabel(r"Mean Enstrophy")
+ax.set_xlabel("frame")
+ax.set_title(r"Mean Enstrophy Evolution")
+ax.grid()
+plt.savefig("mean_enstrophy.pdf")
 plt.close()

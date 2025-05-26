@@ -7,6 +7,7 @@
 #include <string>
 #include <sstream>
 
-void save_csv(const Grid& f, int step);
+void save_grid(const Grid& f, int step);
+void save_vector(std::vector<double> vec, std::string filename);
 
 #endif // WRITE_SOLUTION_H

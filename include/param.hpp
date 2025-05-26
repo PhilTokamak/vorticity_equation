@@ -15,7 +15,7 @@ constexpr int STEPS = 4000;
 constexpr int SAVE_EVERY = 100;
 
 // viscosity
-constexpr double nu = 1e-4;
+constexpr double nu = 0;
 
 
 #endif // PARAM_HPP

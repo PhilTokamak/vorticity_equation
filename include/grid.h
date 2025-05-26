@@ -21,9 +21,15 @@ public:
     const std::vector<double>& operator[](int i) const { return _data[i]; }
 
     // Overload operators for Grid
+
+    // Addition between two Grids
     friend Grid operator+(const Grid& a, const Grid& b);
-    friend Grid operator*(double scalar, const Grid& g);
+    // Subtraction between two Grids
     friend Grid operator-(const Grid& a, const Grid& b);
+    // Multiply a Grid by a real number
+    friend Grid operator*(double scalar, const Grid& g);
+    // Element-wise multiplication between tow Grids
+    friend Grid operator*(const Grid& a, const Grid& g);
 
     //Operations on Grid
 

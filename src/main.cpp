@@ -8,38 +8,49 @@
 
 int main() {
     Grid zeta = zero_grid(N);
-    initialize(zeta);
+    std::vector<double> vorticity_mean{}, kinetic_E_mean{}, enstrophy_mean{};
+
+    // create a new folder to store results
     system("rm -rf output");
     system("mkdir -p output");
     system("mkdir -p output/diagnostics");
 
     // open diagnostics.csv file to write mean values data
-    std::string diag_filename = "output/diagnostics/mean_vorticity.csv";
-    std::ofstream diag_file(diag_filename);
+    std::string vorticity_mean_filename = "output/diagnostics/mean_vorticity.csv";
+    std::string kinetic_E_mean_filename = "output/diagnostics/mean_kinetic_E.csv";
+    std::string enstrophy_mean_filename = "output/diagnostics/mean_enstrophy.csv";
 
-    if (!diag_file) {
-        std::cerr << "Failed to open" << diag_filename << " for writing!" << std::endl;
-        return 1;
-    }
+    initialize(zeta);
 
     for (int step = 0; step <= STEPS; ++step) {
         if (step % SAVE_EVERY == 0) {
-            save_csv(zeta, step);
+            save_grid(zeta, step);
 
-            // Compute mean values of some physical quantities
-            double zeta_mean = compute_mean(zeta);
-            diag_file << zeta_mean;
-            if (STEPS - step >= SAVE_EVERY) {
-                diag_file << ",";
-            } else {
-                diag_file << std::endl;
-            }
+            // Solve Poisson equation to get stream function
+            Grid psi = multigrid_solve(zeta, dx);
+
+            // Compute velocity field
+            auto [ux, uv] = compute_velocity(psi, dx);
+
+            // Compute mean values of some physical quantities:
+            // Mean vorticity
+            double vorticity = compute_mean(zeta);
+            vorticity_mean.push_back(vorticity);
+            // Mean kinetic energy
+            double kinetic_E = compute_mean(ux * ux + uv * uv);
+            kinetic_E_mean.push_back(kinetic_E);
+            // Mean enstrophy
+            double enstrophy = compute_mean(zeta * zeta);
+            enstrophy_mean.push_back(enstrophy);
 
             std::cout << "Step " << step << std::endl;
         }
         rk4_step(zeta);
     }
-    diag_file.close();
+
+    save_vector(vorticity_mean, vorticity_mean_filename);
+    save_vector(kinetic_E_mean, kinetic_E_mean_filename);
+    save_vector(enstrophy_mean, enstrophy_mean_filename);
     std::cout << "Simulation complete.\n";
     return 0;
 }
