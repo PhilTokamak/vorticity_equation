@@ -1,4 +1,4 @@
-#include "grid.hpp"
+#include "grid.h"
 #include "multigrid.h"
 #include "vorticity_eq.h"
 #include "write_solution.h"

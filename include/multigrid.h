@@ -1,7 +1,7 @@
 #ifndef MULTIGRID_H
 #define MULTIGRID_H
 
-#include "grid.hpp"
+#include "grid.h"
 
 // Operators declarations
 Grid laplacian(const Grid& f, double h);
