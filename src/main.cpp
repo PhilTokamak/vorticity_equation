@@ -8,6 +8,7 @@
 
 int main() {
     Grid zeta = zero_grid(N);
+    std::vector<double> T{};
     std::vector<double> vorticity_mean{}, kinetic_E_mean{}, enstrophy_mean{};
 
     // create a new folder to store results
@@ -15,7 +16,8 @@ int main() {
     system("mkdir -p output");
     system("mkdir -p output/diagnostics");
 
-    // open diagnostics.csv file to write mean values data
+    // Define file names
+    std::string time_filename ="output/T.csv";
     std::string vorticity_mean_filename = "output/diagnostics/mean_vorticity.csv";
     std::string kinetic_E_mean_filename = "output/diagnostics/mean_kinetic_E.csv";
     std::string enstrophy_mean_filename = "output/diagnostics/mean_enstrophy.csv";
@@ -43,11 +45,13 @@ int main() {
             double enstrophy = compute_mean(zeta * zeta);
             enstrophy_mean.push_back(enstrophy);
 
+            T.push_back(step * dt);
             std::cout << "Step " << step << std::endl;
         }
         rk4_step(zeta);
     }
 
+    save_vector(T, time_filename);
     save_vector(vorticity_mean, vorticity_mean_filename);
     save_vector(kinetic_E_mean, kinetic_E_mean_filename);
     save_vector(enstrophy_mean, enstrophy_mean_filename);

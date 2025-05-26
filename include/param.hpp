@@ -11,11 +11,14 @@ constexpr double L = 2 * M_PI;
 // Time paramters
 constexpr double dt = 0.05;
 constexpr int STEPS = 4000;
-// Save data
+// Save data every 'SAVE_EVERY' steps
 constexpr int SAVE_EVERY = 100;
 
-// viscosity
+// Viscosity
 constexpr double nu = 0;
+
+// Scheme choice
+constexpr bool use_arakawa = true;
 
 
 #endif // PARAM_HPP

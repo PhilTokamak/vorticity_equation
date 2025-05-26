@@ -2,7 +2,14 @@
 
 Grid rhs(const Grid& zeta) {
     Grid psi = multigrid_solve(zeta, dx);
-    Grid jac = arakawa_jacobian(zeta, psi);
+
+    Grid jac(psi.size());
+    if (use_arakawa) {
+        jac = arakawa_jacobian(zeta, psi);
+    } else {
+        jac = fd_jacobian(zeta, psi);
+    }
+
     Grid diff = nu * laplacian(zeta, dx);
     return jac + diff;
 }
