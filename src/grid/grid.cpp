@@ -33,12 +33,12 @@ Grid operator-(const Grid& a, const Grid& b) {
     return result;
 }
 
-double Grid::sum(const Grid& a) {
-    int n = a.size();
+double Grid::sum() const {
+    int n = size();
     double result = 0.0;
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
-            result += a[i][j];
+            result += _data[i][j];
         }
     }
     return result;

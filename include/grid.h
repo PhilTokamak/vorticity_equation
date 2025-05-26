@@ -28,7 +28,7 @@ public:
     //Operations on Grid
 
     // Compute the sum of all elements in the grid
-    double sum(const Grid& a);
+    double sum() const;
 };
 
 // Create a all-zero grid
