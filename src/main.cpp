@@ -11,12 +11,17 @@ int main() {
     std::vector<double> T{};
     std::vector<double> vorticity_mean{}, kinetic_E_mean{}, enstrophy_mean{};
 
+    // Print info about this simulation
+    std::cout << "Start simulation..." << std::endl << std::endl;
+    print_parameters_to_screen();
+
     // create a new folder to store results
     system("rm -rf output");
     system("mkdir -p output");
     system("mkdir -p output/diagnostics");
 
     // Define file names
+    std::string param_out_filename ="output/parameters_out.txt";
     std::string time_filename ="output/T.csv";
     std::string vorticity_mean_filename = "output/diagnostics/mean_vorticity.csv";
     std::string kinetic_E_mean_filename = "output/diagnostics/mean_kinetic_E.csv";
@@ -51,6 +56,7 @@ int main() {
         rk4_step(zeta);
     }
 
+    save_parameters(param_out_filename);
     save_vector(T, time_filename);
     save_vector(vorticity_mean, vorticity_mean_filename);
     save_vector(kinetic_E_mean, kinetic_E_mean_filename);
