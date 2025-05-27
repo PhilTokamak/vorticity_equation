@@ -2,11 +2,8 @@
 #define MULTIGRID_H
 
 #include "grid.h"
+#include "general_operatos.h"
 
-// Operators declarations
-Grid laplacian(const Grid& f, double h);
-Grid fd_jacobian(const Grid& zeta, const Grid& psi);
-Grid arakawa_jacobian(const Grid& zeta, const Grid& psi);
 void smooth(Grid& psi, const Grid& rhs, int iterations, double h);
 Grid residual(const Grid& psi, const Grid& rhs, double h);
 Grid restrict_grid(const Grid& fine);

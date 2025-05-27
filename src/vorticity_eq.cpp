@@ -1,5 +1,65 @@
 #include "vorticity_eq.h"
 
+/**
+ * Jacobian J(zeta, psi) discretized by second order finite difference
+*/
+Grid fd_jacobian(const Grid& zeta, const Grid& psi) {
+    auto n = zeta.size();
+    Grid J = zero_grid(n);
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            J[i][j] = ((zeta[idx(i+1, n)][j] - zeta[idx(i-1, n)][j])
+                        * (psi[i][idx(j+1, n)] - psi[i][idx(j-1, n)])
+                        - (zeta[i][idx(j+1, n)] - zeta[i][idx(j-1, n)])
+                        * (psi[idx(i+1, n)][j] - psi[idx(i-1, n)][j]))
+                      / (4 * dx * dx);
+        }
+    }
+    return J;
+}
+
+/**
+ * Arakawa Jacobian (2nd order)
+ * Eq. (36) ~ (40), (44), Arakawa_1966
+ */
+Grid arakawa_jacobian(const Grid& zeta, const Grid& psi) {
+    auto n = zeta.size();
+    Grid J = zero_grid(n);
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            double jplusplus = (zeta[idx(i + 1, n)][j] - zeta[idx(i - 1, n)][j])
+                                * (psi[i][idx(j + 1, n)] - psi[i][idx(j - 1, n)])
+                                - (zeta[i][idx(j + 1, n)] - zeta[i][idx(j - 1, n)])
+                                * (psi[idx(i + 1, n)][j] - psi[idx(i - 1, n)][j]);
+
+            double jpluscross = zeta[idx(i + 1, n)][j]
+                                * (psi[idx(i + 1, n)][idx(j + 1, n)]
+                                    - psi[idx(i + 1, n)][idx(j - 1, n)])
+                                - zeta[idx(i - 1, n)][j]
+                                * (psi[idx(i - 1, n)][idx(j + 1, n)]
+                                    - psi[idx(i - 1, n)][idx(j - 1, n)])
+                                - zeta[i][idx(j + 1, n)]
+                                * (psi[idx(i + 1, n)][idx(j + 1, n)]
+                                    - psi[idx(i - 1, n)][idx(j + 1, n)])
+                                + zeta[i][idx(j - 1, n)]
+                                * (psi[idx(i + 1, n)][idx(j - 1, n)]
+                                    - psi[idx(i - 1, n)][idx(j - 1, n)]);
+
+            double jcrossplus = zeta[idx(i + 1, n)][idx(j + 1, n)]
+                                    * (psi[i][idx(j + 1, n)] - psi[idx(i + 1, n)][j])
+                                - zeta[idx(i - 1, n)][idx(j - 1, n)]
+                                    * (psi[idx(i - 1, n)][j] - psi[i][idx(j - 1, n)])
+                                - zeta[idx(i - 1, n)][idx(j + 1, n)]
+                                    * (psi[i][idx(j + 1, n)] - psi[idx(i - 1, n)][j])
+                                + zeta[idx(i + 1, n)][idx(j - 1, n)]
+                                    * (psi[idx(i + 1, n)][j] - psi[i][idx(j - 1, n)]);
+
+            J[i][j] = (jplusplus + jpluscross + jcrossplus) / (12 * dx * dx);
+        }
+    }
+    return J;
+}
+
 Grid rhs(const Grid& zeta) {
     Grid psi = multigrid_solve(zeta, dx);
 

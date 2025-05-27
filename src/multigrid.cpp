@@ -1,81 +1,6 @@
 #include "multigrid.h"
 
 /**
- * Define laplacian, use idx to preserve periodicity
-*/
-Grid laplacian(const Grid& f, double h) {
-    int n = f.size();
-    Grid result = zero_grid(n);
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < n; ++j) {
-            result[i][j] = (f[idx(i + 1, n)][j] + f[idx(i - 1, n)][j]
-                            + f[i][idx(j + 1, n)] + f[i][idx(j - 1, n)]
-                            - 4.0 * f[i][j]) / (h * h);
-        }
-    }
-    return result;
-}
-
-/**
- * Jacobian J(zeta, psi) discretized by second order finite difference
-*/
-Grid fd_jacobian(const Grid& zeta, const Grid& psi) {
-    auto n = zeta.size();
-    Grid J = zero_grid(n);
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < n; ++j) {
-            J[i][j] = ((zeta[idx(i+1, n)][j] - zeta[idx(i-1, n)][j])
-                        * (psi[i][idx(j+1, n)] - psi[i][idx(j-1, n)])
-                        - (zeta[i][idx(j+1, n)] - zeta[i][idx(j-1, n)])
-                        * (psi[idx(i+1, n)][j] - psi[idx(i-1, n)][j]))
-                      / (4 * dx * dx);
-        }
-    }
-    return J;
-}
-
-/**
- * Arakawa Jacobian
- */
-Grid arakawa_jacobian(const Grid& zeta, const Grid& psi) {
-    auto n = zeta.size();
-    Grid J = zero_grid(n);
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < n; ++j) {
-            double jplusplus = (zeta[idx(i + 1, n)][j] - zeta[idx(i - 1, n)][j])
-                                * (psi[i][idx(j + 1, n)] - psi[i][idx(j - 1, n)])
-                                - (zeta[i][idx(j + 1, n)] - zeta[i][idx(j - 1, n)])
-                                * (psi[idx(i + 1, n)][j] - psi[idx(i - 1, n)][j]);
-
-            double jpluscross = zeta[idx(i + 1, n)][j]
-                                * (psi[idx(i + 1, n)][idx(j + 1, n)]
-                                    - psi[idx(i + 1, n)][idx(j - 1, n)])
-                                - zeta[idx(i - 1, n)][j]
-                                * (psi[idx(i - 1, n)][idx(j + 1, n)]
-                                    - psi[idx(i - 1, n)][idx(j - 1, n)])
-                                - zeta[i][idx(j + 1, n)]
-                                * (psi[idx(i + 1, n)][idx(j + 1, n)]
-                                    - psi[idx(i - 1, n)][idx(j + 1, n)])
-                                + zeta[i][idx(j - 1, n)]
-                                * (psi[idx(i + 1, n)][idx(j - 1, n)]
-                                    - psi[idx(i - 1, n)][idx(j - 1, n)]);
-
-            double jcrossplus = zeta[idx(i + 1, n)][idx(j + 1, n)]
-                                    * (psi[i][idx(j + 1, n)] - psi[idx(i + 1, n)][j])
-                                - zeta[idx(i - 1, n)][idx(j - 1, n)]
-                                    * (psi[idx(i - 1, n)][j] - psi[i][idx(j - 1, n)])
-                                - zeta[idx(i - 1, n)][idx(j + 1, n)]
-                                    * (psi[i][idx(j + 1, n)] - psi[idx(i - 1, n)][j])
-                                + zeta[idx(i + 1, n)][idx(j - 1, n)]
-                                    * (psi[idx(i + 1, n)][j] - psi[i][idx(j - 1, n)]);
-
-            J[i][j] = (jplusplus + jpluscross + jcrossplus) / (12 * dx * dx);
-        }
-    }
-    return J;
-}
-
-/**
  * Using Gauss-Seidel method as pre- and post-smoothing to reduce high frequency errors.
  */
 void smooth(Grid& psi, const Grid& rhs, int iterations, double h) {
@@ -109,8 +34,10 @@ Grid restrict_grid(const Grid& fine) {
     Grid coarse = zero_grid(Nc);
     for (int i = 0; i < Nc; ++i) {
         for (int j = 0; j < Nc; ++j) {
-            coarse[i][j] = 0.25 * (fine[idx(2*i, n)][idx(2*j, n)] + fine[idx(2*i+1, n)][idx(2*j, n)]
-                                    + fine[idx(2*i, n)][idx(2*j+1, n)] + fine[idx(2*i+1, n)][idx(2*j+1, n)]);
+            coarse[i][j] = 0.25 * (fine[idx(2*i, n)][idx(2*j, n)]
+                                    + fine[idx(2*i+1, n)][idx(2*j, n)]
+                                    + fine[idx(2*i, n)][idx(2*j+1, n)]
+                                    + fine[idx(2*i+1, n)][idx(2*j+1, n)]);
         }
     }
     return coarse;
