@@ -43,20 +43,20 @@ int main() {
 
     for (int step = 0; step <= STEPS; ++step) {
         if (step % SAVE_EVERY == 0) {
-            save_grid(zeta, step);
+            save_grid(zeta, step, "zeta");
 
             // Solve Poisson equation to get stream function
             Grid psi = multigrid_solve(zeta, dx);
 
             // Compute velocity field
-            auto [ux, uv] = compute_velocity(psi, dx);
+            auto [ux, uy] = compute_velocity(psi, dx);
 
             // Compute mean values of some physical quantities:
             // Mean vorticity
             double vorticity = compute_mean(zeta);
             vorticity_mean.push_back(vorticity);
             // Mean kinetic energy
-            double kinetic_E = compute_mean(ux * ux + uv * uv);
+            double kinetic_E = compute_mean(ux * ux + uy * uy);
             kinetic_E_mean.push_back(kinetic_E);
             // Mean enstrophy
             double enstrophy = compute_mean(zeta * zeta);

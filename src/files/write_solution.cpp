@@ -1,8 +1,8 @@
 #include "write_solution.h"
 
-void save_grid(const Grid& f, int step) {
+void save_grid(const Grid& f, int step, std::string grid_name) {
     std::ostringstream filename;
-    filename << "output/zeta_" << step << ".csv";
+    filename << "output/" << grid_name << "_" << step << ".csv";
     std::ofstream file(filename.str());
     for (int j = 0; j < N; ++j) {
         for (int i = 0; i < N; ++i) {
