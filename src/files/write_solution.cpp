@@ -33,6 +33,15 @@ void save_vector(const std::vector<double>& vec, const std::string filename) {
     out.close();
 }
 
+std::string scheme_to_string(Scheme scheme) {
+    switch (scheme) {
+        case ARAKAWA_2: return "2nd order Arakawa";
+        case ARAKAWA_4: return "4th order Arakawa";
+        case CENTERED_2: return "2nd order Centered Difference";
+        defalut: return "UNKNOWN";
+    }
+}
+
 void print_parameters_to_screen() {
     std::cout << "Parameters:" << std::endl;
     std::cout << "N = " << N << std::endl;
@@ -41,8 +50,8 @@ void print_parameters_to_screen() {
     std::cout << "Total steps = " << STEPS << std::endl;
     std::cout << "SAVE_EVERY = " << SAVE_EVERY << std::endl;
     std::cout << "Viscosity nu = " << nu << std::endl;
-    std::cout << "Use " << (use_arakawa ? "Arakawa " : "Centered difference ")
-        << "Jacobian" << std::endl <<std::endl;
+    std::cout << "Use " << scheme_to_string(scheme)
+                << " Jacobian" << std::endl <<std::endl;
 }
 
 void save_parameters(const std::string filename) {
@@ -59,7 +68,7 @@ void save_parameters(const std::string filename) {
     out << "Total steps = " << STEPS << std::endl;
     out << "SAVE_EVERY = " << SAVE_EVERY << std::endl;
     out << "Viscosity nu = " << nu << std::endl;
-    out << "Use " << (use_arakawa ? "Arakawa " : "Centered difference ")
-        << "Jacobian" << std::endl;
+    out << "Use " << scheme_to_string(scheme)
+            << "Jacobian" << std::endl;
     out.close();
 }

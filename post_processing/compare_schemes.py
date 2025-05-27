@@ -2,8 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-output_dirs = ["output_arakawa", "output_fd"]
-scheme_name = ["Arakawa", "Centered Difference"]
+output_dirs = ["output_arakawa-2", "output_arakawa-4", "output_fd"]
+scheme_name = ["Arakawa-2", "Arakawa-4", "Centered Difference"]
 
 zeta_mean = []
 K_mean = []

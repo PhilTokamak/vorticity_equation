@@ -16,10 +16,21 @@ constexpr int STEPS = 4000;
 constexpr int SAVE_EVERY = 100;
 
 // Viscosity
-constexpr double nu = 1e-4;
+constexpr double nu = 0;
 
-// Scheme choice
-constexpr bool use_arakawa = true;
+/**
+ *  Scheme choice for Jacobian:
+ *      1. ARAKAWA_2: 2nd order nine-point Arakawa scheme
+ *      2. ARAKAWA_4: 4th order thirteen-point Arakawa scheme
+ *      3. CENTERED_2: 2nd order centered scheme
+*/
+enum Scheme {
+    ARAKAWA_2 = 1,
+    ARAKAWA_4 = 2,
+    CENTERED_2 = 3,
+};
+
+constexpr Scheme scheme = ARAKAWA_4;
 
 
 #endif // PARAM_HPP
