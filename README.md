@@ -15,7 +15,7 @@ make
 ## Start a simulation
 To start a simulation, just run
 ```bash
-./start.sh
+./start_simulation.sh
 ```
 
 All the simulation parameters are in `include/param.hpp`. After changing any parameter, run `make` again in `build` directory to rebuild the project, and restart the simulation.
