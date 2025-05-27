@@ -3,7 +3,7 @@ The repo contains the solver for vorticity equations in 2D, it supports several 
 
 ## Build process
 1. Clone this repo
-2. run the commands below
+2. Run the commands below
 ```bash
 cd vorticity_equation
 mkdir build
