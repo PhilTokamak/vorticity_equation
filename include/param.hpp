@@ -5,7 +5,7 @@
 #include <cmath>
 
 //Space parameters
-constexpr int N = 128; // Use a number that is a exponential of 2 to avoid segmentation fault
+constexpr int N = 256; // Use a number that is a exponential of 2 to avoid segmentation fault
                        // This fault is probably due to multigrid solver for Poisson equation
 constexpr double L = 2 * M_PI;
 
@@ -30,7 +30,7 @@ enum Scheme {
     CENTERED_2 = 3,
 };
 
-constexpr Scheme scheme = ARAKAWA_4;
+constexpr Scheme scheme = ARAKAWA_2;
 
 
 #endif // PARAM_HPP

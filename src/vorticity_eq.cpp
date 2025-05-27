@@ -7,6 +7,9 @@
 Grid fd_jacobian(const Grid& zeta, const Grid& psi) {
     auto n = zeta.size();
     Grid J = zero_grid(n);
+#ifdef _OPENMP
+#pragma omp parallel for collapse(2) default(none) shared(zeta, psi, J, n)
+#endif //_OPENMP
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
             J[i][j] = ((zeta[idx(i+1, n)][j] - zeta[idx(i-1, n)][j])
@@ -26,6 +29,9 @@ Grid fd_jacobian(const Grid& zeta, const Grid& psi) {
 Grid arakawa_jacobian(const Grid& zeta, const Grid& psi) {
     auto n = zeta.size();
     Grid J = zero_grid(n);
+#ifdef _OPENMP
+#pragma omp parallel for collapse(2) default(none) shared(zeta, psi, J, n)
+#endif //_OPENMP
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
             double jplusplus = (zeta[idx(i + 1, n)][j] - zeta[idx(i - 1, n)][j])
@@ -68,6 +74,9 @@ Grid arakawa_jacobian(const Grid& zeta, const Grid& psi) {
 Grid arakawa_jacobian_4th_order(const Grid& zeta, const Grid& psi) {
     auto n = zeta.size();
     Grid J = zero_grid(n);
+#ifdef _OPENMP
+#pragma omp parallel for collapse(2) default(none) shared(zeta, psi, J, n)
+#endif //_OPENMP
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
             double jcrosscross = (zeta[idx(i + 1, n)][idx(j + 1, n)]
@@ -139,6 +148,9 @@ void rk4_step(Grid& zeta) {
 }
 
 void initialize(Grid& zeta) {
+#ifdef _OPENMP
+#pragma omp parallel for collapse(2) default(none) shared(zeta)
+#endif //_OPENMP
     for (int i = 0; i < N; ++i) {
         for (int j = 0; j < N; ++j) {
             double x = i * dx;

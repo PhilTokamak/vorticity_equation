@@ -7,6 +7,18 @@
 #include <iostream>
 
 int main() {
+
+#ifdef _OPENMP
+    std::cout << "OpenMP is enabled. Running in multiple threads." << std::endl;
+#pragma omp parallel
+{
+    #pragma omp master
+    std::cout << "Number of threads in parallel region: " << omp_get_num_threads() << std::endl;
+}
+    std::cout << "Max threads: " << omp_get_max_threads() <<std::endl;
+#else
+    std::cout << "Warning: OpenMP not enabled. Running serially." << std::endl;
+#endif //_OPENMP
     Grid zeta = zero_grid(N);
     std::vector<double> T{};
     std::vector<double> vorticity_mean{}, kinetic_E_mean{}, enstrophy_mean{};

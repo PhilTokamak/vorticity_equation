@@ -5,6 +5,7 @@
 #include "grid.h"
 #include "multigrid.h"
 #include "general_operatos.h"
+#include <omp.h>
 
 
 Grid fd_jacobian(const Grid& zeta, const Grid& psi);

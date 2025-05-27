@@ -38,7 +38,7 @@ std::string scheme_to_string(Scheme scheme) {
         case ARAKAWA_2: return "2nd order Arakawa";
         case ARAKAWA_4: return "4th order Arakawa";
         case CENTERED_2: return "2nd order Centered Difference";
-        defalut: return "UNKNOWN";
+        default: return "UNKNOWN";
     }
 }
 

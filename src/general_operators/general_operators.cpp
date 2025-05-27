@@ -6,6 +6,9 @@
 Grid laplacian(const Grid& f, double h) {
     int n = f.size();
     Grid result = zero_grid(n);
+#ifdef _OPENMP
+#pragma omp parallel for collapse(2) default(none) shared(f, result, n, h)
+#endif //_OPENMP
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
             result[i][j] = (f[idx(i + 1, n)][j] + f[idx(i - 1, n)][j]

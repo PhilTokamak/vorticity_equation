@@ -8,6 +8,21 @@ project(VorticitySimulation LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Adding option: whether to use OpenMP or not, default is to use OpenMP (ON);
+# When using OpenMP, please run `export OMP_NUM_THREADS=10` to specfify the number of OpenMP threads;
+# If not using OpenMP, use `cmake -DUSE_OPENMP=OFF ..` in `build` folder to configure the project before building
+option(USE_OPENMP "Enable OpenMP" ON)
+
+# Find and enable OpenMP (not required, if requiring OpenMP, use `find_package(OpenMP REQUIRED)` instead)
+
+if (USE_OPENMP)
+    find_package(OpenMP)
+    if (OpenMP_CXX_FOUND)
+        message(STATUS "Found OpenMP")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    endif()
+endif()
+
 # Add include directory to head file searching path
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
@@ -18,6 +33,10 @@ file(GLOB SRC_FILES
 
 # Define executable
 add_executable(simulation ${SRC_FILES})
+# Link OpenMP if it is found
+if (USE_OPENMP AND OpenMP_CXX_FOUND)
+    target_link_libraries(simulation PUBLIC OpenMP::OpenMP_CXX)
+endif()
 
 # generate start_simulation.sh file to build directory
 configure_file(${PROJECT_SOURCE_DIR}/cmake/start_simulation.sh.in

@@ -7,6 +7,9 @@ void smooth(Grid& psi, const Grid& rhs, int iterations, double h) {
     int n = psi.size();
     Grid psi_new = zero_grid(n);
     for (int it = 0; it < iterations; ++it) {
+#ifdef _OPENMP
+#pragma omp parallel for collapse(2) default(none) shared(psi, rhs, n, psi_new, h)
+#endif //_OPENMP
         for (int i = 0; i < n; ++i) {
             for (int j = 0; j < n; ++j) {
                 psi_new[i][j] = 0.25 * (psi[idx(i+1, n)][j] + psi[idx(i-1, n)][j]
@@ -32,6 +35,9 @@ Grid restrict_grid(const Grid& fine) {
     int Nc = fine.size() / 2;
     int n = fine.size();
     Grid coarse = zero_grid(Nc);
+#ifdef _OPENMP
+#pragma omp parallel for collapse(2) default(none) shared(fine, n, Nc, coarse)
+#endif //_OPENMP
     for (int i = 0; i < Nc; ++i) {
         for (int j = 0; j < Nc; ++j) {
             coarse[i][j] = 0.25 * (fine[idx(2*i, n)][idx(2*j, n)]
@@ -49,6 +55,9 @@ Grid prolong_grid(const Grid& coarse) {
     int Nc = coarse.size();
     int Nf = Nc * 2;
     Grid fine = zero_grid(Nf);
+#ifdef _OPENMP
+#pragma omp parallel for collapse(2) default(none) shared(fine, coarse, Nc, Nf)
+#endif //_OPENMP
     for (int i = 0; i < Nc; ++i) {
         for (int j = 0; j < Nc; ++j) {
             for (int di = 0; di < 2; ++di) {
