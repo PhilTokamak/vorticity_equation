@@ -20,7 +20,7 @@ To start a simulation, just run
 
 All the simulation parameters are in `include/param.hpp`. After changing any parameter, run `make` again in *build* directory to rebuild the project, and restart the simulation.
 
-### OpenMP related
+## OpenMP related
 This project is parallelized with OpenMP, the default setting is to OpenMP. Please check the output aftering running `cmake ..` in *build* directory to see if OpenMP is enabled. In order to use OpenMP to accelerate the simulation, run, for instance,
 ```bash
 export OMP_NUM_THREADS=10
