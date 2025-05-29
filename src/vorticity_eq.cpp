@@ -155,10 +155,13 @@ void initialize(Grid& zeta) {
         for (int j = 0; j < N; ++j) {
             double x = i * dx;
             double y = j * dx;
+            // Two Gaussian vortices
             zeta[i][j] = std::exp(-10.0 * ((x - 3.0 / 4.0 * L / 2.0) * (x - 3.0 / 4.0 * L / 2.0)
                                             + (y - L / 2.0) * (y - L / 2.0)))
                         + std::exp(-10.0 * ((x - 5.0 / 4.0 * L / 2.0) * (x - 5.0 / 4.0 * L / 2.0)
                                             + (y - L / 2.0) * (y - L / 2.0)));
+            // Taylor-Green vortex
+            // zeta[i][j] = std::cos(2 * M_PI * x / L) * std::cos(2 * M_PI * y / L);
         }
     }
 }
