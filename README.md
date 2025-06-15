@@ -18,7 +18,20 @@ To start a simulation, just run
 ./start_simulation.sh
 ```
 
-All the simulation parameters are in `include/param.hpp`. After changing any parameter, run `make` again in *build* directory to rebuild the project, and restart the simulation.
+All the simulation parameters should be included in a `params_in.txt` file in build folder, otherwise default parameters will be used.
+
+An example of `params_in.txt` file is given as follows:
+```
+# Simulation parameters
+// This is an example of param file
+N = 128
+L = 6.283185307179586
+dt = 0.01
+STEPS = 500
+SAVE_EVERY = 100
+nu = 0
+scheme = ARAKAWA_2
+```
 
 ## OpenMP related
 This project is parallelized with OpenMP, the default setting is to OpenMP. Please check the output aftering running `cmake ..` in *build* directory to see if OpenMP is enabled. In order to use OpenMP to accelerate the simulation, run, for instance,
