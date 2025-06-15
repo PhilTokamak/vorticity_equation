@@ -23,6 +23,14 @@ if (USE_OPENMP)
     endif()
 endif()
 
+# If build type is "Profile", adding gprof flag (Mac OS does not support gprof)
+# The build type can be set be using `cmake -DCMAKE_BUILD_TYPE=Profile ..` command in build directory
+if (CMAKE_BUILD_TYPE STREQUAL "Profile")
+    message(STATUS "BUILD type is Profile. Adding gprof flags.")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
+endif()
+
 # Add include directory to head file searching path
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
@@ -54,6 +62,7 @@ set(ADDITIONAL_CLEAN_FILES
     "${PROJECT_BINARY_DIR}/CMakeCache.txt"
     "${PROJECT_BINARY_DIR}/Makefile"
     "${PROJECT_BINARY_DIR}/CMakeFiles"
+    "${PROJECT_BINARY_DIR}/compile_commands.json"
 )
 
 # Set direcroty property, delete these additional files when executing "make clean"
