@@ -2,4 +2,6 @@
 # execute simulation
 time ./simulation
 
-python3 @PROJECT_SOURCE_DIR@/post_processing/visualize.py
+if [ $? -eq 0 ]; then
+    python3 @PROJECT_SOURCE_DIR@/post_processing/visualize.py
+fi
