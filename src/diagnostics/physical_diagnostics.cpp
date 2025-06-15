@@ -1,4 +1,4 @@
-#include "param.hpp"
+#include "param.h"
 #include "physical_diagnostics.h"
 
 double compute_mean(const Grid& f) {

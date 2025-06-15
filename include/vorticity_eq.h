@@ -1,10 +1,10 @@
 #ifndef VORTICITY_EQ_H
 #define VORTICITY_EQ_H
 
-#include "param.hpp"
+#include "param.h"
 #include "grid.h"
 #include "multigrid.h"
-#include "general_operatos.h"
+#include "utility.h"
 #include <omp.h>
 
 

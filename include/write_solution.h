@@ -1,7 +1,7 @@
 #ifndef WRITE_SOLUTION_H
 #define WRITE_SOLUTION_H
 
-#include "param.hpp"
+#include "param.h"
 #include "grid.h"
 #include <fstream>
 #include <iostream>

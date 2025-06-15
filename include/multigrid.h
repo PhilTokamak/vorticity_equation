@@ -2,7 +2,7 @@
 #define MULTIGRID_H
 
 #include "grid.h"
-#include "general_operatos.h"
+#include "utility.h"
 
 void smooth(Grid& psi, const Grid& rhs, int iterations, double h);
 Grid residual(const Grid& psi, const Grid& rhs, double h);

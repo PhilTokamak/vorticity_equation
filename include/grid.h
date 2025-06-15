@@ -1,10 +1,8 @@
 #ifndef GRID_H
 #define GRID_H
 
-#include "param.hpp"
+#include "param.h"
 #include <vector>
-
-constexpr double dx = L / N;
 
 class Grid {
 private:

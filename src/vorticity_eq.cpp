@@ -8,7 +8,7 @@ Grid fd_jacobian(const Grid& zeta, const Grid& psi) {
     auto n = zeta.size();
     Grid J = zero_grid(n);
 #ifdef _OPENMP
-#pragma omp parallel for collapse(2) default(none) shared(zeta, psi, J, n)
+#pragma omp parallel for collapse(2) default(none) shared(zeta, psi, J, n, dx)
 #endif //_OPENMP
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
@@ -30,7 +30,7 @@ Grid arakawa_jacobian(const Grid& zeta, const Grid& psi) {
     auto n = zeta.size();
     Grid J = zero_grid(n);
 #ifdef _OPENMP
-#pragma omp parallel for collapse(2) default(none) shared(zeta, psi, J, n)
+#pragma omp parallel for collapse(2) default(none) shared(zeta, psi, J, n, dx)
 #endif //_OPENMP
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
@@ -75,7 +75,7 @@ Grid arakawa_jacobian_4th_order(const Grid& zeta, const Grid& psi) {
     auto n = zeta.size();
     Grid J = zero_grid(n);
 #ifdef _OPENMP
-#pragma omp parallel for collapse(2) default(none) shared(zeta, psi, J, n)
+#pragma omp parallel for collapse(2) default(none) shared(zeta, psi, J, n, dx)
 #endif //_OPENMP
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
@@ -149,7 +149,7 @@ void rk4_step(Grid& zeta) {
 
 void initialize(Grid& zeta) {
 #ifdef _OPENMP
-#pragma omp parallel for collapse(2) default(none) shared(zeta)
+#pragma omp parallel for collapse(2) default(none) shared(zeta, L, dx, N)
 #endif //_OPENMP
     for (int i = 0; i < N; ++i) {
         for (int j = 0; j < N; ++j) {
@@ -160,8 +160,12 @@ void initialize(Grid& zeta) {
                                             + (y - L / 2.0) * (y - L / 2.0)))
                         + std::exp(-10.0 * ((x - 5.0 / 4.0 * L / 2.0) * (x - 5.0 / 4.0 * L / 2.0)
                                             + (y - L / 2.0) * (y - L / 2.0)));
+
             // Taylor-Green vortex
-            // zeta[i][j] = std::cos(2 * M_PI * x / L) * std::cos(2 * M_PI * y / L);
+            // zeta[i][j] = 2 * std::sin(2 * M_PI * x / L) * std::sin(2 * M_PI * y / L);
+
+            // Random field
+            //zeta[i][j] = rand_real();
         }
     }
 }

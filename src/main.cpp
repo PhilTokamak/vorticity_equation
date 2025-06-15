@@ -1,3 +1,4 @@
+#include "param.h"
 #include "grid.h"
 #include "multigrid.h"
 #include "vorticity_eq.h"
@@ -19,6 +20,10 @@ int main() {
 #else
     std::cout << "Warning: OpenMP not enabled. Running serially." << std::endl;
 #endif //_OPENMP
+
+    // Load param file
+    load_parameters("params_in.txt");
+
     Grid zeta = zero_grid(N);
     std::vector<double> T{};
     std::vector<double> vorticity_mean{}, kinetic_E_mean{}, enstrophy_mean{};
