@@ -52,7 +52,7 @@ scheme = ARAKAWA_2
 ```
 
 ## OpenMP related
-This project is parallelized with OpenMP, the default setting is to OpenMP. Please check the output aftering running `cmake ..` in *build* directory to see if OpenMP is enabled. In order to use OpenMP to accelerate the simulation, run, for instance,
+This project is parallelized with OpenMP, the default setting is to use OpenMP. Please check the output aftering running `cmake ..` in *build* directory to see if OpenMP is enabled. In order to use OpenMP to accelerate the simulation, run, for instance,
 ```bash
 export OMP_NUM_THREADS=10
 ```
