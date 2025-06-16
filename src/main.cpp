@@ -6,6 +6,7 @@
 #include "physical_diagnostics.h"
 #include <fstream>
 #include <iostream>
+#include <filesystem>
 
 int main() {
 
@@ -21,8 +22,14 @@ int main() {
     std::cout << "Warning: OpenMP not enabled. Running serially." << std::endl;
 #endif //_OPENMP
 
-    // Load param file
-    load_parameters("params_in.txt");
+    // Load param file if it exists, otherwise use default parameters instead
+    std::string param_file_name = "params_in.txt";;
+    if (std::filesystem::exists(param_file_name)) {
+        load_parameters(param_file_name);
+    } else {
+        std::cout << "Warning: Param file " << param_file_name << " is not found. "
+                  << "Using default parameters instead." << std::endl;
+    }
 
     Grid zeta = zero_grid(N);
     std::vector<double> T{};
