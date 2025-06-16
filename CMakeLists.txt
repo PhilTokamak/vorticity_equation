@@ -9,11 +9,14 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Adding option: whether to use OpenMP or not, default is to use OpenMP (ON);
-# When using OpenMP, please run `export OMP_NUM_THREADS=10` to specfify the number of OpenMP threads;
-# If not using OpenMP, use `cmake -DUSE_OPENMP=OFF ..` in `build` folder to configure the project before building
+# When using OpenMP, please run `export OMP_NUM_THREADS=10` to specfify the
+# number of OpenMP threads;
+# If not using OpenMP, use `cmake -DUSE_OPENMP=OFF ..` in `build` folder to
+# configure the project before building
 option(USE_OPENMP "Enable OpenMP" ON)
 
-# Find and enable OpenMP (not required, if requiring OpenMP, use `find_package(OpenMP REQUIRED)` instead)
+# Find and enable OpenMP (not required, if requiring OpenMP,
+# use `find_package(OpenMP REQUIRED)` instead)
 
 if (USE_OPENMP)
     find_package(OpenMP)
@@ -24,7 +27,8 @@ if (USE_OPENMP)
 endif()
 
 # If build type is "Profile", adding gprof flag (Mac OS does not support gprof)
-# The build type can be set be using `cmake -DCMAKE_BUILD_TYPE=Profile ..` command in build directory
+# The build type can be set be using `cmake -DCMAKE_BUILD_TYPE=Profile ..`
+# command in build directory
 if (CMAKE_BUILD_TYPE STREQUAL "Profile")
     message(STATUS "BUILD type is Profile. Adding gprof flags.")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
@@ -65,7 +69,8 @@ set(ADDITIONAL_CLEAN_FILES
     "${PROJECT_BINARY_DIR}/compile_commands.json"
 )
 
-# Set direcroty property, delete these additional files when executing "make clean"
+# Set direcroty property, delete these additional files
+# when executing "make clean"
 set_directory_properties(PROPERTIES
     ADDITIONAL_CLEAN_FILES "${ADDITIONAL_CLEAN_FILES}"
 )
