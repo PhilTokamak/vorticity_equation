@@ -136,6 +136,27 @@ Grid rhs(const Grid& zeta) {
     }
 
     Grid diff = nu * laplacian(zeta, dx);
+
+//     // Analytical jacobian for the mms test
+//     Grid jac_mms(psi.size());
+// #ifdef _OPENMP
+// #pragma omp parallel for collapse(2) default(none) shared(jac_mms)
+// #endif //_OPENMP
+//     for (int i = 0; i < N; ++i) {
+//         for (int j = 0; j < N; ++j) {
+//             double x = i * dx;
+//             double y = j * dx;
+
+//             // MMS
+//             jac_mms[i][i] = 15.0 * (12.5 * std::cos(2.0 * x) +
+//                                     std::cos(10.0 * y) - 11.5)
+//                             * std::sin(x) * std::sin(x) * std::sin(2.0 * x)
+//                             * std::cos(10.0 * x);
+//         }
+//     }
+
+    // return jac + diff - jac_mms;
+
     return jac + diff;
 }
 
@@ -166,6 +187,12 @@ void initialize(Grid& zeta) {
 
             // Random field
             //zeta[i][j] = rand_real();
+
+            // MMS
+            // zeta[i][i] = ((6.0 - 9.0 * std::sin(5.0 * y) * std::sin(5.0 * y)) *
+            //                 std::cos(5 * y) * std::cos(5 * y) -
+            //                 50 * std::sin(x) * std::sin(x) * std::cos(10 * y))
+            //              * std::sin(x);
         }
     }
 }
