@@ -1,0 +1,35 @@
+{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name": "g++-15",
+            "displayName": "MacOS GNU G++ 15 Preset",
+            "generator": "Unix Makefiles",
+            "description": "Use Homebrew GNU G++ 15",
+            "cacheVariables": {
+                "CMAKE_CXX_COMPILER": "/opt/homebrew/bin/g++-15",
+                "USE_OPENMP": "ON"
+            }
+        },
+        {
+            "name": "g++-14",
+            "displayName": "MacOS GNU G++ 14 Preset",
+            "generator": "Unix Makefiles",
+            "description": "Use Homebrew GNU G++ 14",
+            "cacheVariables": {
+                "CMAKE_CXX_COMPILER": "/opt/homebrew/bin/g++-14",
+                "USE_OPENMP": "ON"
+            }
+        },
+        {
+            "name": "clang",
+            "displayName": "Apple clang Preset (no OpenMP support)",
+            "generator": "Unix Makefiles",
+            "description": "Use Apple clang",
+            "cacheVariables": {
+                "CMAKE_CXX_COMPILER": "/usr/bin/g++",
+                "USE_OPENMP": "OFF"
+            }
+        }
+    ]
+}
