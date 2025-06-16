@@ -5,8 +5,9 @@
 #include "grid.h"
 #include "multigrid.h"
 #include "utility.h"
+#ifdef _OPENMP
 #include <omp.h>
-
+#endif //_OPENMP
 
 Grid fd_jacobian(const Grid& zeta, const Grid& psi);
 Grid arakawa_jacobian(const Grid& zeta, const Grid& psi);
